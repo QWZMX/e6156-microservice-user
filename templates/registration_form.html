@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Complete Registration</title>
+</head>
+<body>
+    <h1>Complete Your Registration</h1>
+    <form method="post" action="{{ url_for('auth.complete_registration') }}">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required><br><br>
+
+        <label for="usertype">User Type:</label>
+        <input type="text" id="usertype" name="usertype" required><br><br>
+
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
