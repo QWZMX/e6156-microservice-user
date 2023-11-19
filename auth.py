@@ -18,9 +18,10 @@ def generate_nonce(length=16):
 
 @auth_bp.route('/login')
 def login():
-    # 检查session中是否已经有用户信息
     if 'user_id' in session:
-        return jsonify({'userId': session['user_id']})
+        user_id = session['user_id']
+        target_url = f'http://qwzmx.s3-website.us-east-2.amazonaws.com/#/profile/{user_id}'
+        return redirect(target_url)
 
     google = get_google_oauth_client()
     nonce = generate_nonce()
@@ -33,7 +34,8 @@ def login():
 def logout():
     session.pop('user_id', None)
     session.pop('email', None)
-    return redirect(url_for('.login'))
+    target_url = f'http://qwzmx.s3-website.us-east-2.amazonaws.com'
+    return redirect(target_url)
 
 
 @auth_bp.route('/login/authorize')
@@ -46,12 +48,9 @@ def authorize():
 
         user = User.query.filter_by(email=user_info['email']).first()
         if not user:
-            # 将 email 保存到 session 中，稍后创建用户
             session['email'] = user_info['email']
-            # 重定向到注册表单
             return redirect(url_for('.complete_registration'))
         else:
-            # 用户已存在，直接返回用户 ID 并保存到session中
             session['user_id'] = user.userId
             return jsonify({'userId': user.userId})
     except Exception as e:
@@ -61,30 +60,30 @@ def authorize():
 
 @auth_bp.route('/complete-registration', methods=['GET', 'POST'])
 def complete_registration():
-    # 如果是表单提交
     if request.method == 'POST':
         username = request.form.get('username')
         usertype = request.form.get('usertype')
         email = session.get('email', None)
 
-        # 确保email存在于session中
         if not email:
             return jsonify({'error': 'Session expired or invalid.'}), 400
 
-        # 检查用户是否已经存在
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
-            # 用户已存在，返回错误信息
             return jsonify({'error': 'User already exists.'}), 400
 
-        # 创建新用户并保存到数据库
         new_user = User(username=username, email=email, passwordHash="default", userType=usertype)
         db.session.add(new_user)
         db.session.commit()
 
-        # 重定向回登录页面，可以附带一些消息如用户创建成功
         return redirect(url_for('.login'))
-
-    # 如果是GET请求，显示注册表单
     return render_template('registration_form.html')
+
+
+@auth_bp.route('/get-user')
+def get_user():
+    if 'user_id' in session:
+        return jsonify({'userId': session['user_id']})
+    else:
+        return jsonify({'error': 'User not logged in'}), 401
 

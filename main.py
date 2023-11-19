@@ -91,6 +91,18 @@ def get_users():
         'userType': user.userType
     } for user in users]), 200
 
+@app.route('/users/<int:user_id>', methods=['GET'])
+def get_user_by_id(user_id):
+    user = User.query.filter_by(userId=user_id).first()
+    if user is None:
+        return jsonify({'error': 'User not found'}), 404
+
+    return jsonify({
+        'userId': user.userId,
+        'username': user.username,
+        'email': user.email,
+        'userType': user.userType
+    }), 200
 
 @app.route('/users/<int:user_id>', methods=['PUT'])
 def update_user(user_id):
