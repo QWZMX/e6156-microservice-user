@@ -52,7 +52,9 @@ def authorize():
             return redirect(url_for('.complete_registration'))
         else:
             session['user_id'] = user.userId
-            return jsonify({'userId': user.userId})
+            user_id = session['user_id']
+            target_url = f'http://qwzmx.s3-website.us-east-2.amazonaws.com/#/profile/{user_id}'
+            return redirect(target_url)
     except Exception as e:
         current_app.logger.error(f'OAuth authorization error: {e}')
         return jsonify({'error': 'An error occurred during the login process'}), 500
